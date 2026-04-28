@@ -22,7 +22,7 @@ int main(){
         int u, w; cin>>u>>w;
         adj[u].push_back(w);
     }
-    bool visited[v]={}, recStack[v]={};
+    vector<bool> visited(v, false), recStack(v, false);
     bool hasCycle=false;
     for(int i=0; i<v; i++)
         if(!visited[i] && dfs(i, adj, visited, recStack)) hasCycle=true;

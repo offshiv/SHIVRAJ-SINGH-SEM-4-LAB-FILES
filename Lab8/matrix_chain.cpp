@@ -1,15 +1,16 @@
 #include<iostream>
 #include<climits>
+#include<vector>
 using namespace std;
 
 int main(){
     int n;
     cout<<"Enter number of matrices: ";
-    cin>>n;
-    int p[n+1];
+    vector<int> p(n+1);
     cout<<"Enter dimensions: ";
     for(int i=0; i<=n; i++) cin>>p[i];
-    int dp[n][n]={};
+    vector<vector<int>> dp(n, vector<int>(n, 0));
+    for(int len=2; len<=n; len++){
     for(int len=2; len<=n; len++){
         for(int i=0; i<n-len+1; i++){
             int j=i+len-1;
