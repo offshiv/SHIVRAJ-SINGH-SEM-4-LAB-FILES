@@ -748,6 +748,39 @@ int main(){
 **Space Complexity:** `O(1)` extra (excluding input).
 
 ---
+```#include<iostream>
+#include<algorithm>
+using namespace std;
+
+struct Item{
+    float w, v;
+};
+
+bool cmp(Item a, Item b){
+    return (a.v/a.w) > (b.v/b.w);
+}
+
+int main(){
+    int n; float W;
+    cout<<"Enter items and capacity: ";
+    cin>>n>>W;
+    Item items[n];
+    for(int i=0; i<n; i++) cin>>items[i].w>>items[i].v;
+    sort(items, items+n, cmp);
+    float total=0;
+    for(int i=0; i<n; i++){
+        if(W>=items[i].w){
+            total+=items[i].v;
+            W-=items[i].w;
+        } else {
+            total+=(W/items[i].w)*items[i].v;
+            break;
+        }
+    }
+    cout<<"Max value = "<<total<<endl;
+    return 0;
+}
+```
 
 ### 2. Convex Hull (Graham Scan)
 
@@ -765,7 +798,54 @@ int main(){
 **Space Complexity:** `O(n)` — Stack storage.
 
 ---
+```#include<iostream>
+#include<stack>
+#include<algorithm>
+using namespace std;
 
+struct Point{ int x, y; };
+Point p0;
+
+int cross(Point O, Point A, Point B){
+    return (A.x-O.x)*(B.y-O.y)-(A.y-O.y)*(B.x-O.x);
+}
+
+bool cmp(Point a, Point b){
+    int o=cross(p0,a,b);
+    if(o==0) return (a.x*a.x+a.y*a.y)<(b.x*b.x+b.y*b.y);
+    return o>0;
+}
+
+int main(){
+    int n;
+    cout<<"Enter points: ";
+    cin>>n;
+    Point pts[n];
+    for(int i=0; i<n; i++) cin>>pts[i].x>>pts[i].y;
+    int mn=0;
+    for(int i=1; i<n; i++)
+        if(pts[i].y<pts[mn].y || (pts[i].y==pts[mn].y && pts[i].x<pts[mn].x)) mn=i;
+    swap(pts[0], pts[mn]);
+    p0=pts[0];
+    sort(pts+1, pts+n, cmp);
+    stack<Point> st;
+    st.push(pts[0]); st.push(pts[1]); st.push(pts[2]);
+    for(int i=3; i<n; i++){
+        while(st.size()>1){
+            Point top=st.top(); st.pop();
+            if(cross(st.top(), top, pts[i])>0){ st.push(top); break; }
+        }
+        st.push(pts[i]);
+    }
+    cout<<"Convex Hull points:"<<endl;
+    while(!st.empty()){
+        cout<<"("<<st.top().x<<","<<st.top().y<<") ";
+        st.pop();
+    }
+    cout<<endl;
+    return 0;
+}
+```
 ### 3. Kth Smallest Element
 
 **Aim:** To find the Kth smallest element in an unsorted array efficiently.
@@ -780,6 +860,34 @@ int main(){
 **Space Complexity:** `O(log n)` average recursion.
 
 ---
+```#include<iostream>
+using namespace std;
+
+int partition(int arr[], int lo, int hi){
+    int pivot=arr[hi], i=lo-1;
+    for(int j=lo; j<hi; j++)
+        if(arr[j]<=pivot) swap(arr[++i], arr[j]);
+    swap(arr[i+1], arr[hi]);
+    return i+1;
+}
+
+int kthSmallest(int arr[], int lo, int hi, int k){
+    int p=partition(arr, lo, hi);
+    if(p==k-1) return arr[p];
+    if(p>k-1) return kthSmallest(arr, lo, p-1, k);
+    return kthSmallest(arr, p+1, hi, k);
+}
+
+int main(){
+    int n, k;
+    cout<<"Enter size and k: ";
+    cin>>n>>k;
+    int arr[n];
+    for(int i=0; i<n; i++) cin>>arr[i];
+    cout<<"Kth smallest = "<<kthSmallest(arr, 0, n-1, k)<<endl;
+    return 0;
+}
+```
 
 ### 4. Maxmin (Find Max and Min simultaneously)
 
@@ -795,7 +903,24 @@ int main(){
 **Space Complexity:** `O(1)`
 
 ---
+```#include<iostream>
+using namespace std;
 
+int main(){
+    int n;
+    cout<<"Enter size: ";
+    cin>>n;
+    int arr[n];
+    for(int i=0; i<n; i++) cin>>arr[i];
+    int mn=arr[0], mx=arr[0];
+    for(int i=1; i<n; i++){
+        if(arr[i]<mn) mn=arr[i];
+        if(arr[i]>mx) mx=arr[i];
+    }
+    cout<<"Min = "<<mn<<", Max = "<<mx<<endl;
+    return 0;
+}
+```
 ## 🔬 Lab 6
 
 > **Date:** 10/03/26 | **Page:** 53
@@ -816,6 +941,45 @@ int main(){
 **Space Complexity:** `O(V)`
 
 ---
+```#include<iostream>
+#include<vector>
+#include<queue>
+#include<climits>
+using namespace std;
+
+int main(){
+    int v, e;
+    cout<<"Enter vertices and edges: ";
+    cin>>v>>e;
+    vector<pair<int,int>> adj[v];
+    for(int i=0; i<e; i++){
+        int u, w, wt;
+        cin>>u>>w>>wt;
+        adj[u].push_back({w,wt});
+        adj[w].push_back({u,wt});
+    }
+    int src;
+    cout<<"Enter source: ";
+    cin>>src;
+    vector<int> dist(v, INT_MAX);
+    dist[src]=0;
+    priority_queue<pair<int,int>, vector<pair<int,int>>, greater<>> pq;
+    pq.push({0, src});
+    while(!pq.empty()){
+        auto [d, u] = pq.top(); pq.pop();
+        if(d>dist[u]) continue;
+        for(auto [nv, wt]: adj[u]){
+            if(dist[u]+wt < dist[nv]){
+                dist[nv]=dist[u]+wt;
+                pq.push({dist[nv], nv});
+            }
+        }
+    }
+    cout<<"Distances from "<<src<<":"<<endl;
+    for(int i=0; i<v; i++) cout<<i<<" -> "<<dist[i]<<endl;
+    return 0;
+}
+```
 
 ### 2. Prim's Algorithm (MST)
 
@@ -832,6 +996,44 @@ int main(){
 **Space Complexity:** `O(V + E)`
 
 ---
+```#include<iostream>
+#include<vector>
+#include<climits>
+using namespace std;
+
+int main(){
+    int v;
+    cout<<"Enter vertices: ";
+    cin>>v;
+    int g[v][v];
+    cout<<"Enter adjacency matrix:"<<endl;
+    for(int i=0; i<v; i++)
+        for(int j=0; j<v; j++) cin>>g[i][j];
+    vector<int> key(v, INT_MAX), parent(v,-1);
+    vector<bool> inMST(v, false);
+    key[0]=0;
+    for(int cnt=0; cnt<v-1; cnt++){
+        int u=-1;
+        for(int i=0; i<v; i++)
+            if(!inMST[i] && (u==-1 || key[i]<key[u])) u=i;
+        inMST[u]=true;
+        for(int w=0; w<v; w++){
+            if(g[u][w] && !inMST[w] && g[u][w]<key[w]){
+                key[w]=g[u][w];
+                parent[w]=u;
+            }
+        }
+    }
+    int total=0;
+    cout<<"MST edges:"<<endl;
+    for(int i=1; i<v; i++){
+        cout<<parent[i]<<" - "<<i<<" : "<<g[i][parent[i]]<<endl;
+        total+=g[i][parent[i]];
+    }
+    cout<<"Total cost = "<<total<<endl;
+    return 0;
+}
+```
 
 ### 3. Activity Selection (Greedy)
 
@@ -847,6 +1049,35 @@ int main(){
 **Space Complexity:** `O(1)`
 
 ---
+```#include<iostream>
+#include<algorithm>
+using namespace std;
+
+struct Activity{ int s, f; };
+
+bool cmp(Activity a, Activity b){ return a.f < b.f; }
+
+int main(){
+    int n;
+    cout<<"Enter number of activities: ";
+    cin>>n;
+    Activity act[n];
+    for(int i=0; i<n; i++) cin>>act[i].s>>act[i].f;
+    sort(act, act+n, cmp);
+    cout<<"Selected: ";
+    int last=0;
+    cout<<0<<" ";
+    for(int i=1; i<n; i++){
+        if(act[i].s>=act[last].f){
+            cout<<i<<" ";
+            last=i;
+        }
+    }
+    cout<<endl;
+    return 0;
+}
+```
+
 
 ### 4. Cycle Detection
 
@@ -862,6 +1093,38 @@ int main(){
 **Space Complexity:** `O(V)` — visited + recursion stack arrays.
 
 ---
+```#include<iostream>
+#include<vector>
+using namespace std;
+
+bool dfs(int u, const vector<vector<int>>& adj, vector<bool>& visited, vector<bool>& recStack){
+    visited[u]=true;
+    recStack[u]=true;
+    for(int nei: adj[u]){
+        if(!visited[nei] && dfs(nei, adj, visited, recStack)) return true;
+        else if(recStack[nei]) return true;
+    }
+    recStack[u]=false;
+    return false;
+}
+
+int main(){
+    int v, e;
+    cout<<"Enter vertices and edges: ";
+    cin>>v>>e;
+    vector<vector<int>> adj(v);
+    for(int i=0; i<e; i++){
+        int u, w; cin>>u>>w;
+        adj[u].push_back(w);
+    }
+    vector<bool> visited(v, false), recStack(v, false);
+    bool hasCycle=false;
+    for(int i=0; i<v; i++)
+        if(!visited[i] && dfs(i, adj, visited, recStack)) hasCycle=true;
+    cout<<(hasCycle ? "Cycle detected" : "No cycle")<<endl;
+    return 0;
+}
+```
 
 ### 5. Kruskal's Algorithm (MST)
 
@@ -878,6 +1141,44 @@ int main(){
 **Space Complexity:** `O(V)` — Union-Find structure.
 
 ---
+```#include<iostream>
+#include<algorithm>
+#include<vector>
+using namespace std;
+
+struct Edge{ int u, v, w; };
+int parent[100], rnk[100];
+
+int find(int x){ return parent[x]==x ? x : parent[x]=find(parent[x]); }
+
+void unite(int x, int y){
+    int px=find(x), py=find(y);
+    if(rnk[px]<rnk[py]) swap(px,py);
+    parent[py]=px;
+    if(rnk[px]==rnk[py]) rnk[px]++;
+}
+
+int main(){
+    int v, e;
+    cout<<"Enter vertices and edges: ";
+    cin>>v>>e;
+    vector<Edge> edges(e);
+    for(int i=0; i<e; i++) cin>>edges[i].u>>edges[i].v>>edges[i].w;
+    sort(edges.begin(), edges.end(), [](Edge a, Edge b){ return a.w<b.w; });
+    for(int i=0; i<v; i++){ parent[i]=i; rnk[i]=0; }
+    int total=0;
+    cout<<"MST edges:"<<endl;
+    for(auto& e: edges){
+        if(find(e.u)!=find(e.v)){
+            cout<<e.u<<" - "<<e.v<<" : "<<e.w<<endl;
+            total+=e.w;
+            unite(e.u, e.v);
+        }
+    }
+    cout<<"Total cost = "<<total<<endl;
+    return 0;
+}
+```
 
 ## 🔬 Lab 7
 
