@@ -406,6 +406,29 @@ int main(){
 **Time Complexity:** `O(n²)` worst/average; `O(n)` best case (already sorted).  
 **Space Complexity:** `O(1)` — In-place.
 
+```#include<iostream>
+using namespace std;
+
+int main(){
+    int n;
+    cout<<"Enter size: ";
+    cin>>n;
+    int arr[n];
+    for(int i=0; i<n; i++) cin>>arr[i];
+    for(int i=1; i<n; i++){
+        int key = arr[i], j = i-1;
+        while(j>=0 && arr[j]>key){
+            arr[j+1] = arr[j];
+            j--;
+        }
+        arr[j+1] = key;
+    }
+    cout<<"Sorted: ";
+    for(int i=0; i<n; i++) cout<<arr[i]<<" ";
+    cout<<endl;
+    return 0;
+}
+```
 ---
 
 ### 2. Binary Search
@@ -425,6 +448,29 @@ int main(){
 **Space Complexity:** `O(1)` iterative; `O(log n)` recursive.
 
 ---
+```#include<iostream>
+using namespace std;
+
+int main(){
+    int n, key;
+    cout<<"Enter size: ";
+    cin>>n;
+    int arr[n];
+    for(int i=0; i<n; i++) cin>>arr[i];
+    cout<<"Enter key: ";
+    cin>>key;
+    int lo=0, hi=n-1, mid, pos=-1;
+    while(lo<=hi){
+        mid = (lo+hi)/2;
+        if(arr[mid]==key){ pos=mid; break; }
+        else if(arr[mid]<key) lo=mid+1;
+        else hi=mid-1;
+    }
+    if(pos==-1) cout<<"Not found"<<endl;
+    else cout<<"Found at index "<<pos<<endl;
+    return 0;
+}
+```
 
 ## 🔬 Lab 3
 
@@ -444,6 +490,42 @@ int main(){
 **Space Complexity:** `O(log n)` average recursion depth.
 
 ---
+```#include<iostream>
+using namespace std;
+
+int partition(int arr[], int lo, int hi){
+    int pivot = arr[hi], i = lo-1;
+    for(int j=lo; j<hi; j++){
+        if(arr[j]<=pivot){
+            i++;
+            swap(arr[i], arr[j]);
+        }
+    }
+    swap(arr[i+1], arr[hi]);
+    return i+1;
+}
+
+void quickSort(int arr[], int lo, int hi){
+    if(lo<hi){
+        int p = partition(arr, lo, hi);
+        quickSort(arr, lo, p-1);
+        quickSort(arr, p+1, hi);
+    }
+}
+
+int main(){
+    int n;
+    cout<<"Enter size: ";
+    cin>>n;
+    int arr[n];
+    for(int i=0; i<n; i++) cin>>arr[i];
+    quickSort(arr, 0, n-1);
+    cout<<"Sorted: ";
+    for(int i=0; i<n; i++) cout<<arr[i]<<" ";
+    cout<<endl;
+    return 0;
+}
+```
 
 ### 2. Merge Sort
 
@@ -460,6 +542,45 @@ int main(){
 **Space Complexity:** `O(n)` — Auxiliary array for merging.
 
 ---
+```#include<iostream>
+using namespace std;
+
+void merge(int arr[], int l, int m, int r){
+    int n1=m-l+1, n2=r-m;
+    int L[n1], R[n2];
+    for(int i=0; i<n1; i++) L[i]=arr[l+i];
+    for(int i=0; i<n2; i++) R[i]=arr[m+1+i];
+    int i=0, j=0, k=l;
+    while(i<n1 && j<n2){
+        if(L[i]<=R[j]) arr[k++]=L[i++];
+        else arr[k++]=R[j++];
+    }
+    while(i<n1) arr[k++]=L[i++];
+    while(j<n2) arr[k++]=R[j++];
+}
+
+void mergeSort(int arr[], int l, int r){
+    if(l<r){
+        int m=(l+r)/2;
+        mergeSort(arr, l, m);
+        mergeSort(arr, m+1, r);
+        merge(arr, l, m, r);
+    }
+}
+
+int main(){
+    int n;
+    cout<<"Enter size: ";
+    cin>>n;
+    int arr[n];
+    for(int i=0; i<n; i++) cin>>arr[i];
+    mergeSort(arr, 0, n-1);
+    cout<<"Sorted: ";
+    for(int i=0; i<n; i++) cout<<arr[i]<<" ";
+    cout<<endl;
+    return 0;
+}
+```
 
 ## 🔬 Lab 4
 
@@ -481,6 +602,43 @@ int main(){
 **Space Complexity:** `O(log n)` average stack space.
 
 ---
+```#include<iostream>
+#include<stack>
+using namespace std;
+
+int partition(int arr[], int lo, int hi){
+    int pivot=arr[hi], i=lo-1;
+    for(int j=lo; j<hi; j++)
+        if(arr[j]<=pivot) swap(arr[++i], arr[j]);
+    swap(arr[i+1], arr[hi]);
+    return i+1;
+}
+
+void quickSortIter(int arr[], int lo, int hi){
+    stack<int> st;
+    st.push(lo); st.push(hi);
+    while(!st.empty()){
+        hi=st.top(); st.pop();
+        lo=st.top(); st.pop();
+        int p=partition(arr, lo, hi);
+        if(p-1>lo){ st.push(lo); st.push(p-1); }
+        if(p+1<hi){ st.push(p+1); st.push(hi); }
+    }
+}
+
+int main(){
+    int n;
+    cout<<"Enter size: ";
+    cin>>n;
+    int arr[n];
+    for(int i=0; i<n; i++) cin>>arr[i];
+    quickSortIter(arr, 0, n-1);
+    cout<<"Sorted: ";
+    for(int i=0; i<n; i++) cout<<arr[i]<<" ";
+    cout<<endl;
+    return 0;
+}
+```
 
 ### 2. Binary Search 1/3 (Ternary Search)
 
@@ -502,6 +660,32 @@ int main(){
 **Space Complexity:** `O(1)`
 
 ---
+```#include<iostream>
+using namespace std;
+
+int main(){
+    int n, key;
+    cout<<"Enter size: ";
+    cin>>n;
+    int arr[n];
+    for(int i=0; i<n; i++) cin>>arr[i];
+    cout<<"Enter key: ";
+    cin>>key;
+    int lo=0, hi=n-1, pos=-1;
+    while(lo<=hi){
+        int m1=lo+(hi-lo)/3;
+        int m2=hi-(hi-lo)/3;
+        if(arr[m1]==key){ pos=m1; break; }
+        if(arr[m2]==key){ pos=m2; break; }
+        if(key<arr[m1]) hi=m1-1;
+        else if(key>arr[m2]) lo=m2+1;
+        else{ lo=m1+1; hi=m2-1; }
+    }
+    if(pos==-1) cout<<"Not found"<<endl;
+    else cout<<"Found at index "<<pos<<endl;
+    return 0;
+}
+```
 
 ### 3. Permutation Generator
 
@@ -518,7 +702,32 @@ int main(){
 **Space Complexity:** `O(n)` — Recursion depth.
 
 ---
+```#include<iostream>
+using namespace std;
 
+void permute(int arr[], int l, int r){
+    if(l==r){
+        for(int i=0; i<=r; i++) cout<<arr[i]<<" ";
+        cout<<endl;
+        return;
+    }
+    for(int i=l; i<=r; i++){
+        swap(arr[l], arr[i]);
+        permute(arr, l+1, r);
+        swap(arr[l], arr[i]);
+    }
+}
+
+int main(){
+    int n;
+    cout<<"Enter size: ";
+    cin>>n;
+    int arr[n];
+    for(int i=0; i<n; i++) cin>>arr[i];
+    permute(arr, 0, n-1);
+    return 0;
+}
+```
 ## 🔬 Lab 5
 
 > **Date:** 25/02/26 | **Page:** 41
