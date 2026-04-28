@@ -1204,12 +1204,57 @@ int main(){
 **Space Complexity:** `O(V)` — Cost and decision arrays.
 
 ---
+```#include<iostream>
+#include<climits>
+using namespace std;
+
+int main(){
+    int v;
+    cout<<"Enter vertices: ";
+    cin>>v;
+    int g[v][v];
+    cout<<"Enter adjacency matrix (0 if no edge):"<<endl;
+    for(int i=0; i<v; i++)
+        for(int j=0; j<v; j++) cin>>g[i][j];
+
+    // Forward approach
+    int cost[v], d[v];
+    cost[v-1]=0;
+    for(int i=v-2; i>=0; i--){
+        cost[i]=INT_MAX;
+        for(int j=i+1; j<v; j++){
+            if(g[i][j]!=0 && g[i][j]+cost[j]<cost[i]){
+                cost[i]=g[i][j]+cost[j];
+                d[i]=j;
+            }
+        }
+    }
+    cout<<"Min cost (forward) = "<<cost[0]<<endl;
+    cout<<"Path: 0";
+    int curr=0;
+    while(curr!=v-1){ curr=d[curr]; cout<<" -> "<<curr; }
+    cout<<endl;
+
+    // Backward approach
+    int bcost[v];
+    bcost[0]=0;
+    for(int i=1; i<v; i++){
+        bcost[i]=INT_MAX;
+        for(int j=0; j<i; j++){
+            if(g[j][i]!=0 && bcost[j]+g[j][i]<bcost[i])
+                bcost[i]=bcost[j]+g[j][i];
+        }
+    }
+    cout<<"Min cost (backward) = "<<bcost[v-1]<<endl;
+    return 0;
+}
+```
 
 ## 🔬 Lab 8
 
 > **Date:** 08/04/26 | **Page:** 82
 
-### Matrix Chain Multiplication
+### 1 Matrix Chain Multiplication
 
 **Aim:** To find the optimal parenthesisation of matrix multiplication to minimise scalar multiplications.
 
@@ -1226,6 +1271,33 @@ int main(){
 **Space Complexity:** `O(n²)` — DP table.
 
 ---
+```#include<iostream>
+#include<climits>
+#include<vector>
+using namespace std;
+
+int main(){
+    int n;
+    cout<<"Enter number of matrices: ";
+    vector<int> p(n+1);
+    cout<<"Enter dimensions: ";
+    for(int i=0; i<=n; i++) cin>>p[i];
+    vector<vector<int>> dp(n, vector<int>(n, 0));
+    for(int len=2; len<=n; len++){
+    for(int len=2; len<=n; len++){
+        for(int i=0; i<n-len+1; i++){
+            int j=i+len-1;
+            dp[i][j]=INT_MAX;
+            for(int k=i; k<j; k++){
+                int cost=dp[i][k]+dp[k+1][j]+p[i]*p[k+1]*p[j+1];
+                if(cost<dp[i][j]) dp[i][j]=cost;
+            }
+        }
+    }
+    cout<<"Min multiplications = "<<dp[0][n-1]<<endl;
+    return 0;
+}
+```
 
 ## 🔬 Lab 9
 
@@ -1246,6 +1318,31 @@ int main(){
 **Space Complexity:** `O(V²)` — Distance matrix.
 
 ---
+```#include<iostream>
+#include<climits>
+using namespace std;
+
+int main(){
+    int v;
+    cout<<"Enter vertices: ";
+    cin>>v;
+    int dist[v][v];
+    cout<<"Enter adjacency matrix (0=self, large=no edge):"<<endl;
+    for(int i=0; i<v; i++)
+        for(int j=0; j<v; j++) cin>>dist[i][j];
+    for(int k=0; k<v; k++)
+        for(int i=0; i<v; i++)
+            for(int j=0; j<v; j++)
+                if(dist[i][k]+dist[k][j]<dist[i][j])
+                    dist[i][j]=dist[i][k]+dist[k][j];
+    cout<<"Shortest distances:"<<endl;
+    for(int i=0; i<v; i++){
+        for(int j=0; j<v; j++) cout<<dist[i][j]<<"\t";
+        cout<<endl;
+    }
+    return 0;
+}
+```
 
 ### 2. Longest Common Subsequence (LCS)
 
@@ -1263,6 +1360,27 @@ int main(){
 **Space Complexity:** `O(m × n)` — DP table (can be optimised to O(min(m,n))).
 
 ---
+```#include<iostream>
+#include<string>
+using namespace std;
+
+int main(){
+    string s1, s2;
+    cout<<"Enter two strings: ";
+    cin>>s1>>s2;
+    int m=s1.size(), n=s2.size();
+    int dp[m+1][n+1];
+    for(int i=0; i<=m; i++){
+        for(int j=0; j<=n; j++){
+            if(i==0 || j==0) dp[i][j]=0;
+            else if(s1[i-1]==s2[j-1]) dp[i][j]=dp[i-1][j-1]+1;
+            else dp[i][j]=max(dp[i-1][j], dp[i][j-1]);
+        }
+    }
+    cout<<"LCS length = "<<dp[m][n]<<endl;
+    return 0;
+}
+```
 
 ### 3. Traveling Salesperson Problem (TSP)
 
@@ -1279,6 +1397,40 @@ int main(){
 **Space Complexity:** `O(n × 2ⁿ)` — DP table.
 
 ---
+```#include<iostream>
+#include<vector>
+#include<climits>
+using namespace std;
+
+int n;
+int dist[10][10];
+int dp[1024][10];
+
+int tsp(int mask, int pos){
+    if(mask==(1<<n)-1) return dist[pos][0];
+    if(dp[mask][pos]!=-1) return dp[mask][pos];
+    int res=INT_MAX;
+    for(int city=0; city<n; city++){
+        if(!(mask & (1<<city)) && dist[pos][city]){
+            int val=dist[pos][city]+tsp(mask|(1<<city), city);
+            res=min(res, val);
+        }
+    }
+    return dp[mask][pos]=res;
+}
+
+int main(){
+    cout<<"Enter cities: ";
+    cin>>n;
+    cout<<"Enter distance matrix:"<<endl;
+    for(int i=0; i<n; i++)
+        for(int j=0; j<n; j++) cin>>dist[i][j];
+    for(int i=0; i<(1<<n); i++)
+        for(int j=0; j<n; j++) dp[i][j]=-1;
+    cout<<"Min tour cost = "<<tsp(1, 0)<<endl;
+    return 0;
+}
+```
 
 ### 4. 0/1 Knapsack
 
@@ -1295,6 +1447,28 @@ int main(){
 **Space Complexity:** `O(n × W)` — DP table (can be optimised to O(W)).
 
 ---
+```#include<iostream>
+using namespace std;
+
+int main(){
+    int n, W;
+    cout<<"Enter items and capacity: ";
+    cin>>n>>W;
+    int w[n], v[n];
+    for(int i=0; i<n; i++) cin>>w[i]>>v[i];
+    int dp[n+1][W+1];
+    for(int i=0; i<=n; i++){
+        for(int j=0; j<=W; j++){
+            if(i==0 || j==0) dp[i][j]=0;
+            else if(w[i-1]<=j)
+                dp[i][j]=max(v[i-1]+dp[i-1][j-w[i-1]], dp[i-1][j]);
+            else dp[i][j]=dp[i-1][j];
+        }
+    }
+    cout<<"Max value = "<<dp[n][W]<<endl;
+    return 0;
+}
+```
 
 ## 🔬 Lab 10
 
@@ -1316,6 +1490,41 @@ int main(){
 **Space Complexity:** `O(N)` — Board state and recursion depth.
 
 ---
+```#include<iostream>
+using namespace std;
+
+int n, board[20];
+
+bool isSafe(int row, int col){
+    for(int i=0; i<row; i++)
+        if(board[i]==col || abs(board[i]-col)==abs(i-row)) return false;
+    return true;
+}
+
+void solve(int row, int& count){
+    if(row==n){
+        count++;
+        for(int i=0; i<n; i++) cout<<board[i]<<" ";
+        cout<<endl;
+        return;
+    }
+    for(int col=0; col<n; col++){
+        if(isSafe(row, col)){
+            board[row]=col;
+            solve(row+1, count);
+        }
+    }
+}
+
+int main(){
+    cout<<"Enter n: ";
+    cin>>n;
+    int count=0;
+    solve(0, count);
+    cout<<"Total solutions = "<<count<<endl;
+    return 0;
+}
+```
 
 ### 2. Subset Sum Problem
 
@@ -1336,6 +1545,34 @@ int main(){
 **Space Complexity:** `O(n)` backtracking; `O(n × sum)` DP.
 
 ---
+```#include<iostream>
+using namespace std;
+
+int arr[100], n, target;
+
+void solve(int idx, int curr, vector<int>& path){
+    if(curr==target){
+        cout<<"{ ";
+        for(int x: path) cout<<x<<" ";
+        cout<<"}"<<endl;
+        return;
+    }
+    if(idx==n || curr>target) return;
+    path.push_back(arr[idx]);
+    solve(idx+1, curr+arr[idx], path);
+    path.pop_back();
+    solve(idx+1, curr, path);
+}
+
+int main(){
+    cout<<"Enter size and target: ";
+    cin>>n>>target;
+    for(int i=0; i<n; i++) cin>>arr[i];
+    vector<int> path;
+    solve(0, 0, path);
+    return 0;
+}
+```
 
 ### 3. Graph Colouring / Chromatic Number
 
@@ -1354,6 +1591,43 @@ int main(){
 **Space Complexity:** `O(n)` — Colour assignment array + recursion depth.
 
 ---
+```#include<iostream>
+using namespace std;
+
+int color[100], g[100][100], v, m;
+
+bool isSafe(int node, int c){
+    for(int i=0; i<v; i++)
+        if(g[node][i] && color[i]==c) return false;
+    return true;
+}
+
+bool solve(int node){
+    if(node==v) return true;
+    for(int c=1; c<=m; c++){
+        if(isSafe(node, c)){
+            color[node]=c;
+            if(solve(node+1)) return true;
+            color[node]=0;
+        }
+    }
+    return false;
+}
+
+int main(){
+    cout<<"Enter vertices, edges, colors: ";
+    int e; cin>>v>>e>>m;
+    for(int i=0; i<e; i++){
+        int u, w; cin>>u>>w;
+        g[u][w]=g[w][u]=1;
+    }
+    if(solve(0)){
+        cout<<"Colors assigned:"<<endl;
+        for(int i=0; i<v; i++) cout<<"Vertex "<<i<<" -> Color "<<color[i]<<endl;
+    } else cout<<"No solution with "<<m<<" colors"<<endl;
+    return 0;
+}
+```
 
 ### 4. Hamiltonian Graph (Hamiltonian Path/Circuit)
 
@@ -1371,6 +1645,47 @@ int main(){
 **Space Complexity:** `O(n)` — Path array + visited array + recursion depth.
 
 ---
+```#include<iostream>
+#include<vector>
+using namespace std;
+
+int v, g[100][100], path[100];
+bool visited[100];
+
+bool solve(int pos){
+    if(pos==v){
+        // check if last vertex connects back to start (circuit)
+        if(g[path[pos-1]][path[0]]) return true;
+        return false;
+    }
+    for(int node=1; node<v; node++){
+        if(g[path[pos-1]][node] && !visited[node]){
+            path[pos]=node;
+            visited[node]=true;
+            if(solve(pos+1)) return true;
+            visited[node]=false;
+        }
+    }
+    return false;
+}
+
+int main(){
+    int e;
+    cout<<"Enter vertices and edges: ";
+    cin>>v>>e;
+    for(int i=0; i<e; i++){
+        int u, w; cin>>u>>w;
+        g[u][w]=g[w][u]=1;
+    }
+    path[0]=0; visited[0]=true;
+    if(solve(1)){
+        cout<<"Hamiltonian Circuit: ";
+        for(int i=0; i<v; i++) cout<<path[i]<<" ";
+        cout<<path[0]<<endl;
+    } else cout<<"No Hamiltonian Circuit found"<<endl;
+    return 0;
+}
+```
 
 ## 📊 Time Complexity Summary
 
@@ -1399,12 +1714,6 @@ int main(){
 | Hamiltonian Path | - | O(n!) | O(n!) | O(n) |
 
 ---
-
-## 🛠️ Technologies Used
-
-- **Language:** C / C++ / Python *(as applicable per program)*
-- **IDE:** VS Code / GCC compiler
-- **Platform:** Linux / Windows
 
 ---
 
